@@ -1,0 +1,3 @@
+Importato il file comunimod sul database Atlas mongodb; 
+
+mongoimport --jsonArray --db comuni --collection collection --file comunimod.json 

@@ -1,0 +1,15 @@
+{
+  "name": "flow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aldodo",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^3.2.7",
+    "axios": "^0.18.0"
+  }
+}
