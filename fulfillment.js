@@ -24,55 +24,28 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         agent.add(`Non capisco, puoi ripetere?`);
     }
 
-    function getIstat(comune) {
-        var mongoclient = require('mongodb').MongoClient;
-        var uri = 'mongodb+srv://usr:<password>@cluster-suzvw.mongodb.net/test?retryWrites=true&w=majority';
-        mongoclient.connect(uri, { useNewUrlParser: true }, (err, client) => {
-            if (err) {
-                agent.add(``);
-            }
-            else {
-                const collection = client.db("comuni").collection("collection");
-                collection.findOne({ "nome ": '"' + comune + '"' }, (errore, result) => {
-                    if (errore) console.log(errore);
-                    else {
-                        return result.codice.slice(1);
-                    }
-                });
-            }
-        });
-    }
+function getMeteo(agent) {
 
-
-    function getMeteo(agent) {
-        var citta = agent.parameters.address;
-        var istatCode = "";
-        istatCode = getIstat(citta);
-        var product = "wrf5";
-        const URL = 'http://193.205.230.6/products/' + product + '/forecast/';
-
-        if (istatCode === "") {
-            const hardcoded = "com63049"; // si deve ottenere convertendo citta in code
-            return axios.get(URL + hardcoded)
-                .then((result) => {
-                    agent.add(`il tempo a ` + citta + ` al momento e ` +
-                        result.data.forecast.text.it + ` ,con un vento che soffia da ` +
-                        result.data.forecast.winds);
-                });
+    var citta = agent.parameters.address.replace("/ /g","%20");
+    const ISTAT = 'https://api.meteo.uniparthenope.it/places/search/byname/comune%20di%20';
+    
+    var product = "wrf5";
+    const URL = 'https://api.meteo.uniparthenope.it/products/' + product + '/forecast/';
+    var code =""; 
+    return axios.get(ISTAT + citta).then((result) => {
+        try {
+            code = result.data[0].id;
+            return axios.get(URL + code).then((results) => {
+                agent.add(`il tempo a ` + citta + ` al momento e ` +
+                    results.data.forecast.text.it + `, con un vento che soffia da ` +
+                    results.data.forecast.winds);
+            });
+        } catch (error) {
+            agent.add(`non riesco a soddisfare la tua richesta per `+ citta);
+            return ;
         }
-        else {
-            agent.add(`Il codicice comune di ${citta} dovrebbe e ${istatCode} `);
-            var citycode = "com" + istatCode;
-            return axios.get(URL + citycode)
-                .then((result) => {
-                    agent.add(`il tempo a ` + citta + ` al momento e ` +
-                        result.data.forecast.text.it + ` ,con un vento che soffia da ` +
-                        result.data.forecast.winds);
-                });
-
-        }
-    }
-
+    });
+}
     let intentMap = new Map();
     intentMap.set('Default Welcome Intent', welcome);
     intentMap.set('Default Fallback Intent', fallback);
